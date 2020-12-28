@@ -1,6 +1,8 @@
 package Utility
 
 import (
+	master "MapReduce/Master"
+	worker "MapReduce/Worker"
 	"fmt"
 	"log"
 	"os"
@@ -24,7 +26,7 @@ func Split_Data(filename string, number_chunks int) {
 	var pos int64 = 0
 
 	/*
-	  Iterate through file based on number of chuncks and read about chunkSize from the file.
+	  Iterate through file based on number of chuncks and read chunkSize of bytes from the file.
 	  After create new file and write new chunck of data into it.
 
 	*/
@@ -52,5 +54,9 @@ func Split_Data(filename string, number_chunks int) {
 		f.Write(byteSlice)
 
 	}
+
+	//Start number_chuncks workers
+	master.Start()
+	worker.Start_Worker(number_chunks)
 
 }
