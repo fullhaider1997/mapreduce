@@ -1,8 +1,6 @@
-package Utility
+package mw
 
 import (
-	master "MapReduce/Master"
-	worker "MapReduce/Worker"
 	"fmt"
 	"log"
 	"os"
@@ -44,19 +42,15 @@ func Split_Data(filename string, number_chunks int) {
 
 		pos = pos + int64(chunckSize)
 
-		f, err := os.Create("C:/Go/src/MapReduce/Chunks/chunk-" + strconv.Itoa(i) + ".txt")
+		f, err := os.Create("C:/Go/src/User-mapreduce/MapReduce/Chunks/chunk-" + strconv.Itoa(i) + ".txt")
 		defer f.Close()
 
-		if err == nil {
+		if err != nil {
 			fmt.Println("Error opening the file")
 		}
 
 		f.Write(byteSlice)
 
 	}
-
-	//Start number_chuncks workers
-	master.Start()
-	worker.Start_Worker(number_chunks)
 
 }
