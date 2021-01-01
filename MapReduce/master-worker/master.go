@@ -6,6 +6,8 @@ import (
 	"net"
 	"net/http"
 	"net/rpc"
+	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -23,10 +25,19 @@ type Master_Data struct {
 
 type JOB int
 
+var master = Master_Data{
+	Number_Workers:    0,
+	Number_MapTask:    0,
+	Number_ReduceTask: 0,
+	ws:                []Worker_Status{},
+}
+
 func Start_Job(number_chuncks int) {
 
-	//masterdata := Master_Data{"Some path", sync.WaitGroup{}}
 	var wg sync.WaitGroup
+	//Initalize master data structure based on number of chunks
+	master = master.init(number_chuncks)
+	fmt.Println("The number of workers", master.Number_Workers)
 	wg.Add(1)
 	go StartServer(&wg)
 	wg.Add(number_chuncks)
@@ -36,21 +47,37 @@ func Start_Job(number_chuncks int) {
 
 }
 
-func (j *JOB) GetMapTask(message MessagePacket, reply *MessagePacket) error {
+var path string
 
-	masterDataStruct := Master_Data{0, 0, 0, []Worker_Status{}}
-	masterDataStruct.Number_Workers += 1
-	masterDataStruct.Number_MapTask += 1
-	masterDataStruct.ws = append(masterDataStruct.ws, Worker_Status{message.Worker_id, "in-progress"})
+func getPath() string {
+
+	return path
+}
+
+func setPath(pathd string) {
+	path = pathd
+}
+
+func (j *JOB) GetMapTask(message MessagePacket, reply *MessagePacket) error {
 
 	fmt.Println("GetMapTask called by", message.Worker_id)
 
-	*reply = MessagePacket{message.Worker_id, "You will get a job soon..."}
+	fmt.Println("The number of workers", master.Number_Workers)
 
-	fmt.Println("Current list of workers and status")
+	for i := 0; i < master.Number_Workers; i++ {
 
-	for _, val := range masterDataStruct.ws {
-		fmt.Println(val.status, val.id)
+		if strings.Compare(master.ws[i].status, "idle") == 0 {
+
+			fmt.Println("Worker is idle !")
+
+			*reply = MessagePacket{message.Worker_id, getPath() + "/chunk-" + strconv.Itoa(i) + ".txt"}
+
+		} else {
+
+			*reply = MessagePacket{message.Worker_id, "We didn't get the path"}
+
+		}
+
 	}
 
 	//Send the path to the file chunks to each worker
@@ -96,4 +123,34 @@ func StartServer(wg *sync.WaitGroup) {
 
 	//wg.Done()
 
+}
+
+////////////// Master data //////////////
+func (m Master_Data) init(num int) Master_Data {
+
+	m.Number_Workers = num
+
+	for i := 0; i < num; i++ {
+		m.ws = append(m.ws, Worker_Status{0, "idle"})
+	}
+	return m
+}
+
+func (m Master_Data) addWorker(id int) {
+
+	m.Number_Workers += 1
+	m.Number_MapTask += 1
+
+	m.ws = append(m.ws, Worker_Status{id, "idle"})
+
+}
+
+func (m Master_Data) getMasterDSWorkers() []Worker_Status {
+
+	return m.ws
+}
+
+func (m Master_Data) getMasterDSNumWorkers() int {
+
+	return m.Number_Workers
 }

@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func Split_Data(filename string, number_chunks int) {
+func Split_Data(filename string, number_chunks int, pathOfChunks string) {
 
 	file, err := os.Open(filename)
 	if err != nil {
@@ -42,7 +42,7 @@ func Split_Data(filename string, number_chunks int) {
 
 		pos = pos + int64(chunckSize)
 
-		f, err := os.Create("C:/Go/src/User-mapreduce/MapReduce/Chunks/chunk-" + strconv.Itoa(i) + ".txt")
+		f, err := os.Create(pathOfChunks + "/chunk-" + strconv.Itoa(i) + ".txt")
 		defer f.Close()
 
 		if err != nil {
@@ -50,6 +50,8 @@ func Split_Data(filename string, number_chunks int) {
 		}
 
 		f.Write(byteSlice)
+
+		setPath(pathOfChunks)
 
 	}
 
