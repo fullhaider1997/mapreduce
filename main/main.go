@@ -6,7 +6,7 @@ import (
 
 func main() {
 
-	number_chunks := 3
+	number_chunks := 30
 	filename := "C:/Go/src/User-mapreduce/MapReduce/Book/pg-being_ernest.txt"
 
 	mapreduce.Split_Data(filename, number_chunks, "C:/Go/src/User-mapreduce/MapReduce/Chunks")

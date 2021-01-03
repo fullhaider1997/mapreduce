@@ -58,27 +58,45 @@ func setPath(pathd string) {
 	path = pathd
 }
 
+var count int = 0
+
+func (j *JOB) NotifyMaster(messsage MessagePacket, reply *MessagePacket) error {
+
+	fmt.Println("Notify Master by: ", messsage.Worker_id, "Status of map:", messsage.Message)
+
+	if messsage.Message == "complete" {
+
+		master.ws[messsage.Worker_id].status = "idle"
+
+	}
+
+	return nil
+}
+
 func (j *JOB) GetMapTask(message MessagePacket, reply *MessagePacket) error {
 
 	fmt.Println("GetMapTask called by", message.Worker_id)
 
 	fmt.Println("The number of workers", master.Number_Workers)
 
-	for i := 0; i < master.Number_Workers; i++ {
+	//Check if worker is idle
+	if strings.Compare(master.ws[count].status, "idle") == 0 {
 
-		if strings.Compare(master.ws[i].status, "idle") == 0 {
+		fmt.Println("Worker is idle !")
 
-			fmt.Println("Worker is idle !")
+		// Update the status of worker as "in-progress"
+		master.ws[count].status = "in-progress"
 
-			*reply = MessagePacket{message.Worker_id, getPath() + "/chunk-" + strconv.Itoa(i) + ".txt"}
+		//Send the worker the path to the file chunk
+		*reply = MessagePacket{message.Worker_id, getPath() + "/chunk-" + strconv.Itoa(count) + ".txt"}
 
-		} else {
+	} else {
 
-			*reply = MessagePacket{message.Worker_id, "We didn't get the path"}
-
-		}
+		*reply = MessagePacket{message.Worker_id, "We didn't get the path"}
 
 	}
+
+	count += 1
 
 	//Send the path to the file chunks to each worker
 	// Record how many maps are finished
@@ -131,7 +149,7 @@ func (m Master_Data) init(num int) Master_Data {
 	m.Number_Workers = num
 
 	for i := 0; i < num; i++ {
-		m.ws = append(m.ws, Worker_Status{0, "idle"})
+		m.ws = append(m.ws, Worker_Status{i, "idle"})
 	}
 	return m
 }

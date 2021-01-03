@@ -7,11 +7,15 @@ package wordcount
 //
 
 import (
-	mr "MapReduce/Worker"
 	"strconv"
 	"strings"
 	"unicode"
 )
+
+type KeyValue struct {
+	Key   string
+	Value string
+}
 
 //
 // The map function is called once for each file of input. The first
@@ -21,7 +25,9 @@ import (
 // of key/value pairs.
 //
 
-func Mapf(filename string, contents string) []mr.KeyValue {
+var keyvalue []KeyValue
+
+func Mapf(filename string, contents string) []KeyValue {
 
 	// function to detect word separators.
 	/*
@@ -33,9 +39,9 @@ func Mapf(filename string, contents string) []mr.KeyValue {
 	// split contents into an array of words.
 	words := strings.FieldsFunc(contents, ff)
 
-	kva := []mr.KeyValue{}
+	kva := []KeyValue{}
 	for _, w := range words {
-		kv := mr.KeyValue{w, "1"}
+		kv := KeyValue{w, "1"}
 		kva = append(kva, kv)
 	}
 	return kva
